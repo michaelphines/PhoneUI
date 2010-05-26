@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<vxml version = "2.1" >
+
+  <meta name="author" content="Michael Hines" />
+  <meta name="copyright" content="2010 Michael Hines" />
+  <meta name="maintainer" content="mike@michaelphines.net" />
+
+  <% if @options[:mode] == "dtmf" %>
+    <property name="inputmodes" value="dtmf" />
+  <% end %>
+
+  <% if @options[:continuous] == "true" %>
+    <catch event="error.badfetch">
+      <goto next="#dialog" />
+    </catch>
+  <% end %>
+
+  <form id="dialog">
+    <% unless @options[:grammar] %>
+      <block><%= @options[:prompt] %></block>
+    <% else %>
+      <field name="field">
+        <grammar type="application/grammar-xml" mode="<%= @options[:mode].to_s %>" root="ROOT">
+          <rule id="ROOT">
+            <one-of>
+              <% @options[:grammar].each do |utterance| %>
+                <item><%= utterance %></item>
+              <% end %>
+            </one-of>
+          </rule>
+        </grammar>
+
+        <% if @options[:prompt] %>
+          <prompt>
+            <%= @options[:prompt] %>
+          </prompt>
+        <% end %>
+        
+        <% if @options[:noinput] %>
+          <noinput>
+            <prompt>
+              <%= @options[:noinput] %>
+            </prompt>
+            <%= "<reprompt/>" unless @options[:noreprompt] == "true" %>
+          </noinput>
+        <% end %>
+
+        <% if @options[:nomatch] %>
+          <nomatch>
+            <prompt>
+              <%= @options[:nomatch] %>
+            </prompt>
+            <%= "<reprompt/>" unless @options[:noreprompt] == "true" %>
+          </nomatch>
+        <% end %>
+      </field>
+
+      <filled namelist="field" mode="all">
+        <% if @options[:reply] %>
+          <prompt>
+            <%= @options[:reply].gsub('<answer>', '<value expr="field" />')%>
+          </prompt>
+        <% end %>
+        <var name="eventname" expr="'data'" />
+        <var name="session_id" expr="session.connection.ccxml.sessionid" />
+        <var name="dialog_id" expr="session.connection.ccxml.values.dialog_id" />
+        <data method="post" srcexpr="'/'+session_id+'/'+dialog_id+'/responded'" namelist="field eventname" />
+        <%= '<goto next="#dialog" />' if @options[:continuous] == "true" %>
+      </filled>
+    <% end %>
+  </form>
+</vxml>

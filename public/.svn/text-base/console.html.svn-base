@@ -1,0 +1,41 @@
+<html>
+  <head>
+    <script type="text/javascript" src="script/jquery.js"></script>
+    <script type="text/javascript" src="script/swfobject.js"></script>
+    <script type="text/javascript" src="script/mq.js"></script>
+    <script type="text/javascript" src="script/jquery.phoneui.js"></script>
+
+    <script type="text/javascript">
+      function message(text) { $("body").prepend(text+"<br />"); };
+    
+      phoneUI.initialize();
+
+      phoneUI.serverConnected(function(){
+        message("Connected to AMQP server")
+      });
+      
+      phoneUI.serverDisconnected(function() {
+        message("Disconnected");
+      });
+      
+      phoneUI.clientLoaded(function() {
+        message("AMQP Flash client loaded");
+      });
+      
+      phoneUI.connected(function(result) {
+        message("User connected: "+JSON.stringify(result));
+      });
+      
+      phoneUI.disconnected(function(result) {
+        message("User disconnected: "+JSON.stringify(result));
+      });
+      
+      phoneUI.responded(function(result) {
+        message("User responded: "+JSON.stringify(result));
+      });
+    </script>
+
+  </head>
+  <body>
+  </body>
+</html>

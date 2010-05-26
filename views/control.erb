@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ccxml version="1.0" xmlns="http://www.w3.org/2002/09/ccxml">
+
+  <meta name="author" content="Michael Hines" />
+  <meta name="copyright" content="2010 Michael Hines" />
+  <meta name="maintainer" content="mike@michaelphines.net" />
+
+  <var name="appDialog" />
+  <var name="connection" />
+  <var name="session_id" expr="session.id" />
+  <var name="callback_uri" expr="session.ioprocessors['basichttp']" />
+  
+  <eventprocessor>
+    <transition event="connection.alerting">
+      <assign name="connection" expr="event$.connection" />
+      <accept />
+    </transition>
+
+    <transition event="connection.connected">
+      <var name="caller_id" expr="connection.remote" />
+      <send target="'connected'" targettype="'basichttp'" name="'connected'" namelist="session_id callback_uri caller_id" />
+    </transition>
+ 
+    <transition event="callDiag">
+      <var name="dialog_id" expr="event$.dialog_id" />
+      <if cond="session.dialogs[appDialog]">
+        <dialogterminate dialogid="appDialog" immediate="true" />
+      </if>
+      <dialogstart connectionid="connection.connectionid" type="'application/voicexml+xml'" src="session_id+'/ivr'" dialogid="appDialog" namelist="dialog_id" />
+    </transition>
+ 
+    <transition event="killDiag">
+      <if cond="session.dialogs[appDialog]">
+        <dialogterminate dialogid="appDialog" immediate="true" />
+      </if>
+    </transition>
+
+    <transition event="connection.disconnected">
+      <log expr="' *** Caller disconnected ***'" />
+      <send target="'disconnected'" targettype="'basichttp'" name="'disconnected'" namelist="session_id" />
+      <send name="'hangup'" target="session.id" delay="'1s'" />
+    </transition>
+    
+    <transition event="hangup">
+      <exit />
+    </transition>
+
+    <transition event="error.*">
+      <log expr="'*** Unexpected error: [' + event$.reason + '] ***'" />
+      <exit />
+    </transition>
+  </eventprocessor>
+
+</ccxml>

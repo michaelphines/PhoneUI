@@ -1,0 +1,95 @@
+------
+Requirements
+------
+
+You will need:
+Ruby
+Perl (if you want to use the included policy-server)
+RabbitMQ (or equivalent AMQP server)
+
+The following RubyGems:
+sinatra
+async_sinatra
+json
+amqp
+thin
+
+You must include the following scripts:
+mq.js
+swfobject.js
+jquery.js
+jquery.phoneui.js
+
+------
+AMQP and Flash Policy Files
+------
+
+If you are running your own message queue, you will need to start up your favorite AMQP server (RabbitMQ recommended).  Also, to allow flash to connect to your AMQP server you will need to serve a policy file on port 843.  You can use the included policy-server.
+
+Example:
+sudo rabbitmq-server &
+sudo policy-server/socketpolicy.pl &
+./start_server
+
+------
+JavaScript API
+------
+
+See the example in phoneui/public/example/tetris.phoneui.js
+The JavaScript API allows these methods:
+
+// The options are optional, these are the default
+// See AMPQ-js documentation for more on mqServer options
+phoneUI.initialize({
+	swfDir: "/swf/",
+	mqServer: {
+		host: document.location.hostname 
+	},
+	restServer: document.location.host
+});
+
+//Callback when AMQP-js has loaded the Flex component
+phoneUI.clientLoaded(function() {});
+
+//Callback when AMQP-js has connected to/disconnected from the server
+phoneUI.serverConnected(function() {});
+phoneUI.serverDisconnected(function() {});
+
+// Ask or say something to the user on the phone.  The heart of PhoneUI-js
+// All options are, well, optional, but you must supply a session_id.  
+phoneUI.dialog(session_id, {
+
+  // Is the input voice or dtmf (ie. TouchTone)?
+  mode: "voice", 
+
+  // keep asking the same question over and over again?
+  continuous: "true", 
+
+  // Say something to the user before we wait for his answer
+  prompt: "Say one of the options", 
+
+  // What to say if we didn't hear anything
+  noinput: "I didn't hear you.",
+
+  // What to say if we didn't understand.
+  nomatch: "Your options are hello world and goodnight moon.",
+
+  // Tell the user something after he's replied.  <answer> is his utterance.
+  reply: "You said <answer>.", 
+
+  // Without a grammar, only the prompt will be played.
+  grammar: {
+	// Supply as many utterances and callbacks as you want
+    "hello world": function() { message("Hello World")}, 
+    "goodnight moon": function() { message("Goodnight Moon")}
+  }
+});
+
+//Callback when any client has responded to any dialog 
+phoneUI.responded(function() {});
+
+//Stop the dialog on the specified session 
+phoneUI.killDialog(session_id);
+
+//(Re)start the dialog on the specified session, using existing callbacks 
+phoneUI.reloadDialog(session_id);

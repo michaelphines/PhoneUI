@@ -1,0 +1,9 @@
+environment: production
+address: 0.0.0.0
+port: 4567
+rackup: config.ru
+timeout: 60
+phoneui:
+  amqp_server:
+    host: localhost
+    port: 5672
